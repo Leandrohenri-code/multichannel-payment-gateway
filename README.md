@@ -6,9 +6,9 @@
 
 Gateway de pagamentos SaaS multi-canal que permite a vendedores comercializarem produtos digitais e físicos via bots no Telegram, Discord, WhatsApp e um widget JavaScript drop-in tudo a partir de um único painel, com divisão de receita (split) nativa.
 
-A plataforma gerencia o ciclo completo de pagamento: iniciação do checkout em cada canal, processamento via PIX, cartão de crédito, boleto (Asaas) e criptomoedas (USDT TRC-20, BTC, BEP-20), entrega automática de produtos digitais e liquidação cripto non-custodial via derivação de HD Wallet — cada vendedor recebe diretamente em um endereço on-chain único.
+A plataforma gerencia o ciclo completo de pagamento: iniciação do checkout em cada canal, processamento via PIX, cartão de crédito, boleto (Asaas) e criptomoedas (USDT TRC-20, BTC, BEP-20), entrega automática de produtos digitais e liquidação cripto non-custodial via derivação de HD Wallet, cada vendedor recebe diretamente em um endereço on-chain único.
 
-O split de receita entre plataforma e vendedor é calculado atomicamente na criação do pedido e liquidado de forma assíncrona por workers em background .Saques em BRL via subcontas Asaas, saques em cripto via conversão na Foxbit e retirada on-chain.
+O split de receita entre plataforma e vendedor é calculado atomicamente na criação do pedido e liquidado de forma assíncrona por workers em background. Saques em BRL via subcontas Asaas, saques em cripto via conversão na Foxbit e retirada on-chain.
 
 ---
 
