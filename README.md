@@ -4,11 +4,11 @@
 ![Stack](https://img.shields.io/badge/stack-Node.js%20%7C%20Next.js%20%7C%20Fastify-blue)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-A multi-channel SaaS payment gateway that enables merchants to sell digital and physical products through Telegram bots, Discord bots, WhatsApp, and a drop-in JavaScript widget — all from a single dashboard with split-revenue billing built in.
+A multi-channel SaaS payment gateway that enables merchants to sell digital and physical products through Telegram bots, Discord bots, WhatsApp, and a drop-in JavaScript widget  all from a single dashboard with split-revenue billing built in.
 
 The platform handles the full payment lifecycle: checkout initiation across channels, payment processing via PIX, credit card, boleto (Asaas), and cryptocurrency (USDT TRC-20, BTC, BEP-20), automated delivery of digital goods, and non-custodial crypto settlement using HD Wallet derivation so each merchant receives funds directly at a unique on-chain address.
 
-Revenue split between the platform and each merchant is calculated atomically at order creation and settled asynchronously through background workers — BRL payouts via Asaas sub-accounts, crypto payouts via Foxbit conversion and on-chain withdrawal.
+Revenue split between the platform and each merchant is calculated atomically at order creation and settled asynchronously through background workers BRL payouts via Asaas sub-accounts, crypto payouts via Foxbit conversion and on-chain withdrawal.
 
 ---
 
@@ -42,7 +42,7 @@ Client (Telegram / Discord / WhatsApp / Browser)
   └─────────────────────┘
 ```
 
-Payments flow through provider-specific adapters (`lib/asaas`, `lib/foxbit`, `lib/blockchain`) consumed by order routes and workers. The split math runs inside a Prisma transaction — platform fee percentage is stored per order so historical revenue is always auditable.
+Payments flow through provider-specific adapters (`lib/asaas`, `lib/foxbit`, `lib/blockchain`) consumed by order routes and workers. The split math runs inside a Prisma transaction platform fee percentage is stored per order so historical revenue is always auditable.
 
 ---
 
