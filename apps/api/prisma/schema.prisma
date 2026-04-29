@@ -1,0 +1,314 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Merchant {
+  id                    String   @id @default(cuid())
+  email                 String   @unique
+  passwordHash          String
+  name                  String
+  document              String?  
+  status                MerchantStatus @default(PENDING)
+  plan                  Plan     @default(FREE)
+
+  bankCode              String?
+  bankAgency            String?
+  bankAccount           String?
+  bankAccountType       String?  
+  pixKey                String?
+  pixKeyType            String?  
+
+  asaasRecipientId      String?  
+
+  hdWalletIndex         Int      @unique 
+  trc20Address          String?  
+  btcAddress            String?  
+  bepAddress            String?  
+
+  webhookUrl            String?
+  notificationEmail     String?
+
+  products              Product[]
+  orders                Order[]
+  withdrawals           Withdrawal[]
+  integrations          Integration[]
+  apiKeys               ApiKey[]
+  telegramStore         TelegramStoreConfig?
+  discordStore          DiscordStoreConfig?
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model Product {
+  id                    String   @id @default(cuid())
+  merchantId            String
+  merchant              Merchant @relation(fields: [merchantId], references: [id])
+
+  name                  String
+  description           String?
+  price                 Decimal  @db.Decimal(10, 2)
+  currency              Currency @default(BRL)
+  status                ProductStatus @default(ACTIVE)
+  type                  ProductType
+
+  deliveryConfig        Json
+  hasStock              Boolean  @default(false)
+  stockQuantity         Int?
+
+  allowInstallments     Boolean  @default(false)
+  maxInstallments       Int      @default(1)
+
+  orders                Order[]
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model Order {
+  id                    String   @id @default(cuid())
+  merchantId            String
+  merchant              Merchant @relation(fields: [merchantId], references: [id])
+  productId             String
+  product               Product  @relation(fields: [productId], references: [id])
+
+  buyerRef              String   
+  buyerChannel          Channel  
+  buyerChannelId        String   
+
+  amount                Decimal  @db.Decimal(10, 2)
+  currency              Currency @default(BRL)
+  platformFee           Decimal  @db.Decimal(10, 2)
+  platformFeePercent    Decimal  @db.Decimal(5, 2)
+  merchantAmount        Decimal  @db.Decimal(10, 2)
+
+  paymentMethod         PaymentMethod
+  paymentProvider       String?  
+  paymentProviderId     String?  
+  cryptoAmount          Decimal? @db.Decimal(18, 8)
+  cryptoCurrency        String?
+  cryptoAddress         String?  
+  cryptoTxHash          String?
+
+  status                OrderStatus @default(PENDING)
+  paidAt                DateTime?
+  deliveredAt           DateTime?
+  expiresAt             DateTime?   
+
+  shippingAddress       Json?
+  installments          Int      @default(1)
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model Withdrawal {
+  id                    String   @id @default(cuid())
+  merchantId            String
+  merchant              Merchant @relation(fields: [merchantId], references: [id])
+
+  amount                Decimal  @db.Decimal(10, 2)
+  currency              Currency
+  type                  WithdrawalType 
+
+  pixKey                String?
+  bankAccount           Json?
+
+  cryptoAddress         String?
+  cryptoNetwork         String?  
+  cryptoAmount          Decimal? @db.Decimal(18, 8)
+  txHash                String?
+
+  platformFee           Decimal  @db.Decimal(10, 2)
+  networkFee            Decimal? @db.Decimal(18, 8)
+
+  status                WithdrawalStatus @default(PENDING)
+  asaasWithdrawalId     String?  
+
+  processedAt           DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model CryptoConversion {
+  id                    String   @id @default(cuid())
+  amountBrl             Decimal  @db.Decimal(10, 2)
+  amountCrypto          Decimal  @db.Decimal(18, 8)
+  currency              String   
+  exchangeRate          Decimal  @db.Decimal(18, 8)
+  foxbitOrderId         String?  
+  walletDestination     String
+  status                String   @default("pending")
+  createdAt             DateTime @default(now())
+}
+
+model Integration {
+  id                    String   @id @default(cuid())
+  merchantId            String
+  merchant              Merchant @relation(fields: [merchantId], references: [id])
+
+  platform              Platform 
+  status                IntegrationStatus @default(INACTIVE)
+  config                Json
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([merchantId, platform])
+}
+
+model ApiKey {
+  id                    String   @id @default(cuid())
+  merchantId            String
+  merchant              Merchant @relation(fields: [merchantId], references: [id])
+  key                   String   @unique
+  name                  String
+  lastUsedAt            DateTime?
+  expiresAt             DateTime?
+  createdAt             DateTime @default(now())
+}
+
+model TelegramStoreConfig {
+  id                  String   @id @default(cuid())
+  merchantId          String   @unique
+  merchant            Merchant @relation(fields: [merchantId], references: [id])
+  botToken            String   
+  botUsername         String
+  botName             String
+  storeName           String
+  welcomeMessage      String   @default("Bem-vindo à {nome_loja}! Escolha um produto abaixo 👇")
+  postPaymentMessage  String   @default("✅ Pagamento confirmado! Sua entrega está a caminho.")
+  outOfStockMessage   String   @default("😕 Este produto está temporariamente indisponível.")
+  themeEmoji          String   @default("🛍")
+  coverImageUrl       String?
+  activeProductIds    String[]
+  productOrder        String[]
+  productImages       Json     @default("{}")  
+  productDescriptions Json     @default("{}")  
+  enabledMethods      String[] @default(["PIX", "CREDIT_CARD", "CRYPTO_USDT_TRC20"])
+  isActive            Boolean  @default(false)
+  webhookRegistered   Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model DiscordStoreConfig {
+  id                      String   @id @default(cuid())
+  merchantId              String   @unique
+  merchant                Merchant @relation(fields: [merchantId], references: [id])
+  botToken                String   
+  clientId                String
+  guildId                 String
+  guildName               String
+  storeChannelId          String
+  logsChannelId           String?
+  storeMessageId          String?  
+  dmCheckout              Boolean  @default(true)
+  storeName               String
+  welcomeMessage          String   @default("Bem-vindo à {nome_loja}! Use os botões abaixo para comprar.")
+  postPaymentMessage      String   @default("✅ Pagamento confirmado! Verifique seu DM.")
+  embedColor              String   @default("#6366F1")
+  bannerImageUrl          String?
+  activeProductIds        String[]
+  productOrder            String[]
+  productImages           Json     @default("{}")
+  productDescriptions     Json     @default("{}")
+  enabledMethods          String[] @default(["PIX", "CREDIT_CARD", "CRYPTO_USDT_TRC20"])
+  isActive                Boolean  @default(false)
+  slashCommandsRegistered Boolean  @default(false)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
+enum MerchantStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  BLOCKED
+}
+
+enum Plan {
+  FREE
+  PRO
+  BUSINESS
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ProductType {
+  DIGITAL
+  PHYSICAL
+  SUBSCRIPTION
+  ACCESS
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  DELIVERED
+  CANCELLED
+  EXPIRED
+  REFUNDED
+}
+
+enum Channel {
+  TELEGRAM
+  DISCORD
+  WHATSAPP
+  WEB
+}
+
+enum PaymentMethod {
+  PIX
+  CREDIT_CARD
+  DEBIT_CARD
+  BOLETO
+  CRYPTO_USDT_TRC20
+  CRYPTO_USDT_BEP20
+  CRYPTO_BTC_LIGHTNING
+  CRYPTO_BTC_ONCHAIN
+}
+
+enum Currency {
+  BRL
+  USD
+  USDT
+  BTC
+}
+
+enum WithdrawalType {
+  BRL
+  USDT
+  BTC
+  BNB
+}
+
+enum WithdrawalStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum Platform {
+  TELEGRAM
+  DISCORD
+  WHATSAPP
+  WEBSITE
+}
+
+enum IntegrationStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+}
